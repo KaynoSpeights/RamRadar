@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RamRadar | Discover What's Happening</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <header class="navbar">
+        <div class="logo">Ram<span>Radar</span></div>
+
+        <nav>
+            <a href="/">Explore</a>
+            <a href="#categories">Categories</a>
+            <a href="#activities">Activities</a>
+        </nav>
+
+        <button class="create-button">+ Create Activity</button>
+    </header>
+
+    <main>
+
+        <section class="hero">
+            <div class="hero-content">
+                <p class="eyebrow">YOUR CAMPUS. YOUR COMMUNITY.</p>
+
+                <h1>Discover what's <span>happening.</span></h1>
+
+                <p class="hero-description">
+                    Find events, meet new people, join activities,
+                    and make the most of your college experience.
+                </p>
+
+                <div class="search-container">
+                    <input type="text" placeholder="Search activities, events, and more...">
+                    <button>Search</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="categories" id="categories">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">EXPLORE</p>
+                    <h2>Find your community</h2>
+                </div>
+            </div>
+
+            <div class="category-list">
+                <button class="category active">All Activities</button>
+                <button class="category">Events</button>
+                <button class="category">Pickup Games</button>
+                <button class="category">Study Sessions</button>
+                <button class="category">Social Meetups</button>
+                <button class="category">Gaming</button>
+                <button class="category">Concerts & Outings</button>
+                <button class="category">Career</button>
+            </div>
+        </section>
+
+        <section class="activities" id="activities">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">WHAT'S HAPPENING</p>
+                    <h2>Explore activities</h2>
+                </div>
+
+                <a href="#activities" class="view-all">View all →</a>
+            </div>
+
+            <div class="activity-grid">
+
+                <article class="activity-card">
+                    <div class="activity-image basketball">
+                        <span>Pickup Games</span>
+                    </div>
+
+                    <div class="activity-info">
+                        <p class="activity-date">SAMPLE EVENT</p>
+                        <h3>Campus Basketball Meetup</h3>
+                        <p>Meet other students for a friendly pickup game.</p>
+                        <div class="activity-footer">
+                            <span>📍 Campus Recreation Center</span>
+                            <span>👥 Open</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="activity-card">
+                    <div class="activity-image study">
+                        <span>Study Sessions</span>
+                    </div>
+
+                    <div class="activity-info">
+                        <p class="activity-date">SAMPLE EVENT</p>
+                        <h3>Group Study Session</h3>
+                        <p>Connect with students and study together.</p>
+                        <div class="activity-footer">
+                            <span>📍 Library</span>
+                            <span>👥 Open</span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="activity-card">
+                    <div class="activity-image gaming">
+                        <span>Gaming</span>
+                    </div>
+
+                    <div class="activity-info">
+                        <p class="activity-date">SAMPLE EVENT</p>
+                        <h3>Student Gaming Night</h3>
+                        <p>Find other gamers and enjoy a night of gaming.</p>
+                        <div class="activity-footer">
+                            <span>🌐 Virtual</span>
+                            <span>👥 Open</span>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>RamRadar © 2026 | Discover. Connect. Participate.</p>
+    </footer>
+
+</body>
+</html>
