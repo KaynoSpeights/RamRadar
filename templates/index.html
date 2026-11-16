@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RamRadar | Discover What's Happening</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
 
 <body>
@@ -35,10 +36,11 @@
                     and make the most of your college experience.
                 </p>
 
-                <div class="search-container">
-                    <input type="text" placeholder="Search activities, events, and more...">
-                    <button>Search</button>
-                </div>
+                <form class="search-container" id="activity-search" role="search">
+                    <label class="visually-hidden" for="search-query">Search activities</label>
+                    <input id="search-query" name="q" type="search" placeholder="Search activities, events, and more...">
+                    <button type="submit">Search</button>
+                </form>
             </div>
         </section>
 
@@ -51,14 +53,14 @@
             </div>
 
             <div class="category-list">
-                <button class="category active">All Activities</button>
-                <button class="category">Events</button>
-                <button class="category">Pickup Games</button>
-                <button class="category">Study Sessions</button>
-                <button class="category">Social Meetups</button>
-                <button class="category">Gaming</button>
-                <button class="category">Concerts & Outings</button>
-                <button class="category">Career</button>
+                <button type="button" class="category active" data-category="all" aria-pressed="true">All Activities</button>
+                <button type="button" class="category" data-category="Events" aria-pressed="false">Events</button>
+                <button type="button" class="category" data-category="Pickup Games" aria-pressed="false">Pickup Games</button>
+                <button type="button" class="category" data-category="Study Sessions" aria-pressed="false">Study Sessions</button>
+                <button type="button" class="category" data-category="Social Meetups" aria-pressed="false">Social Meetups</button>
+                <button type="button" class="category" data-category="Gaming" aria-pressed="false">Gaming</button>
+                <button type="button" class="category" data-category="Concerts & Outings" aria-pressed="false">Concerts & Outings</button>
+                <button type="button" class="category" data-category="Career" aria-pressed="false">Career</button>
             </div>
         </section>
 
@@ -72,9 +74,16 @@
                 <a href="#activities" class="view-all">View all →</a>
             </div>
 
+            <div class="filter-summary" hidden>
+                <p id="results-count" role="status" aria-live="polite" aria-atomic="true"></p>
+                <button type="button" id="clear-filters">Clear filters</button>
+            </div>
+            <p id="no-results" hidden>No activities match your search. Try another keyword or clear your filters.</p>
+            <noscript><p>Enable JavaScript to search and filter activities. All activities are shown below.</p></noscript>
+
             <div class="activity-grid">
 
-                <article class="activity-card">
+                <article class="activity-card" data-category="Pickup Games">
                     <div class="activity-image basketball">
                         <span>Pickup Games</span>
                     </div>
@@ -90,7 +99,7 @@
                     </div>
                 </article>
 
-                <article class="activity-card">
+                <article class="activity-card" data-category="Study Sessions">
                     <div class="activity-image study">
                         <span>Study Sessions</span>
                     </div>
@@ -106,7 +115,7 @@
                     </div>
                 </article>
 
-                <article class="activity-card">
+                <article class="activity-card" data-category="Gaming">
                     <div class="activity-image gaming">
                         <span>Gaming</span>
                     </div>
