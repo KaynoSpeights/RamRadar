@@ -4,14 +4,14 @@
 
 Install the packages in `requirements.txt`, then run `python app.py` from the project directory. SQLite is initialized automatically on the first request, and the local database is written to the ignored `instance/` directory.
 
-Set `RAMRADAR_SECRET_KEY` to a persistent, randomly generated secret before deployment. For HTTPS deployments, set `RAMRADAR_SECURE_COOKIES=true` so session cookies are sent only over secure connections. Without a configured secret, the development server generates a temporary key at startup, so sessions do not survive a restart.
+Set `SECRET_KEY` (or `RAMRADAR_SECRET_KEY`) to a persistent, randomly generated secret before deployment. For HTTPS deployments, set `COOKIE_SECURE=true` (or `RAMRADAR_SECURE_COOKIES=true`) so session cookies are sent only over secure connections. For local development, the app writes a random key to the ignored `instance/secret_key.txt` file.
 
 ## Implemented
 
 - Responsive homepage with category navigation, client-side search, mobile navigation, and reduced-motion support.
 - Server-filtered activity search by keyword, category, time window, and location.
 - Activity detail and creation pages.
-- Account registration and sign-in using password hashes.
+- Account registration and sign-in using scrypt password hashes, request validation, CSRF protection, Flask-Login sessions, and login rate limiting.
 - Session-based RSVP, saved activities, and a member community page for reviewing those plans.
 - Feedback form with SQLite storage.
 - Privacy policy page describing the current prototype.

@@ -17,7 +17,7 @@
             <p class="eyebrow">MAKE IT A PLAN</p><h1>{{ activity.title }}</h1>
             <div class="detail-facts"><p><span>◷</span><span><small>DATE &amp; TIME</small><strong>{{ activity.starts_at|event_date }}</strong></span></p><p><span>⌖</span><span><small>WHERE</small><strong>{{ activity.location }}</strong></span></p><p><span>♧</span><span><small>ORGANIZED BY</small><strong>{{ activity.organizer_name }}</strong></span></p><p><span>◉</span><span><small>GOING</small><strong>{{ activity.attendee_count }} {{ "person" if activity.attendee_count == 1 else "people" }}</strong></span></p></div>
             {% if activity.is_demo %}<p class="demo-disclaimer">This is demonstration content, not a confirmed WSSU event.</p>{% endif %}
-            {% if current_user %}
+            {% if current_user.is_authenticated %}
             <form action="{{ url_for('update_rsvp', activity_id=activity.id) }}" method="post" class="detail-actions">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 {% if activity.is_attending %}<button class="button button-primary button-full" type="submit" name="action" value="leave">You're going · Cancel RSVP</button>{% else %}<button class="button button-primary button-full" type="submit" name="action" value="join">RSVP to this activity <span aria-hidden="true">→</span></button>{% endif %}

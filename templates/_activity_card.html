@@ -22,7 +22,7 @@
         </div>
         <div class="activity-card-actions">
             <a class="button button-outline" href="{{ url_for('activity_detail', activity_id=activity.id) }}">View details <span aria-hidden="true">→</span></a>
-            {% if current_user %}
+            {% if current_user.is_authenticated %}
             <form action="{{ url_for('update_rsvp', activity_id=activity.id) }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input type="hidden" name="next" value="{{ request.full_path }}">

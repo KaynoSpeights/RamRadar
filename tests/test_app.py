@@ -24,7 +24,7 @@ class RamRadarAppTests(unittest.TestCase):
     def token(self, path="/"):
         response = self.client.get(path)
         self.assertEqual(response.status_code, 200)
-        match = re.search(rb'name="csrf_token" value="([^"]+)"', response.data)
+        match = re.search(rb'name="csrf_token"[^>]*value="([^"]+)"', response.data)
         self.assertIsNotNone(match)
         return match.group(1).decode()
 
@@ -34,9 +34,20 @@ class RamRadarAppTests(unittest.TestCase):
             "/register",
             data={
                 "csrf_token": token,
-                "name": "Test Ram",
+                "username": "testram",
                 "email": "ram@example.edu",
-                "password": "safe-password-123",
+                "password": "safe-password-1234",
+                "confirm_password": "safe-password-1234",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        token = self.token("/login")
+        response = self.client.post(
+            "/login",
+            data={
+                "csrf_token": token,
+                "email": "ram@example.edu",
+                "password": "safe-password-1234",
             },
         )
         self.assertEqual(response.status_code, 302)
@@ -115,7 +126,7 @@ class RamRadarAppTests(unittest.TestCase):
         token = self.token("/login?next=https://example.com")
         response = self.client.post(
             "/login?next=https://example.com",
-            data={"csrf_token": token, "email": "ram@example.edu", "password": "safe-password-123"},
+            data={"csrf_token": token, "email": "ram@example.edu", "password": "safe-password-1234"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.location, "/")

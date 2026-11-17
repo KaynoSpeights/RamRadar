@@ -2,8 +2,8 @@ import os
 import secrets
 import sqlite3
 from datetime import datetime, timedelta
-from functools import wraps
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from flask import (
     Flask,
@@ -13,21 +13,65 @@ from flask import (
     redirect,
     render_template,
     request,
-    session,
     url_for,
 )
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+
+from database import init_db
+from forms import LoginForm, RegistrationForm
+from user_models import (
+    User,
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    get_user_by_username,
+    verify_password,
+)
 
 
 app = Flask(__name__, instance_relative_config=True)
+Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+
+secret_key_file = Path(app.instance_path) / "secret_key.txt"
+secret_key = os.environ.get("SECRET_KEY") or os.environ.get("RAMRADAR_SECRET_KEY")
+if not secret_key:
+    if secret_key_file.exists():
+        secret_key = secret_key_file.read_text().strip()
+    else:
+        secret_key = secrets.token_hex(32)
+        secret_key_file.write_text(secret_key)
+        secret_key_file.chmod(0o600)
+
 app.config.update(
-    SECRET_KEY=os.environ.get("RAMRADAR_SECRET_KEY") or secrets.token_hex(32),
-    DATABASE=os.path.join(app.instance_path, "ramradar.sqlite3"),
+    SECRET_KEY=secret_key,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=os.environ.get("RAMRADAR_SECURE_COOKIES", "").lower() == "true",
+    SESSION_COOKIE_SECURE=(
+        os.environ.get("COOKIE_SECURE", os.environ.get("RAMRADAR_SECURE_COOKIES", "false")).lower()
+        == "true"
+    ),
 )
-Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+init_db(app)
+
+csrf = CSRFProtect(app)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://",
+)
+login_manager = LoginManager()
+login_manager.login_view = "login"
+login_manager.init_app(app)
 
 CATEGORIES = [
     "Campus Events",
@@ -59,10 +103,10 @@ def initialize_db():
         """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS activities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,6 +142,28 @@ def initialize_db():
         );
         """
     )
+    user_columns = {
+        row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()
+    }
+    if "name" not in user_columns:
+        db.execute("ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT ''")
+    user_columns = {
+        row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()
+    }
+    if "username" not in user_columns:
+        db.execute("ALTER TABLE users ADD COLUMN username TEXT")
+        for user in db.execute("SELECT id, name, email FROM users").fetchall():
+            candidate = (user["name"] or user["email"].split("@", 1)[0]).strip().lower()
+            candidate = "".join(char for char in candidate if char.isalnum() or char == "_") or "ram"
+            username = candidate
+            suffix = 1
+            while db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+                username = f"{candidate}{suffix}"
+                suffix += 1
+            db.execute("UPDATE users SET username = ? WHERE id = ?", (username, user["id"]))
+        db.execute("CREATE UNIQUE INDEX users_username_unique ON users(username)")
+    db.execute("UPDATE users SET name = username WHERE name = ''")
+
     existing = db.execute("SELECT COUNT(*) FROM activities").fetchone()[0]
     if existing == 0:
         now = datetime.now().replace(second=0, microsecond=0)
@@ -136,14 +202,14 @@ def initialize_db():
     db.commit()
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return get_user_by_id(app.config["DATABASE"], user_id)
+
+
 @app.before_request
 def prepare_request():
     initialize_db()
-    if request.method == "POST":
-        submitted = request.form.get("csrf_token", "")
-        expected = session.get("_csrf_token", "")
-        if not expected or not secrets.compare_digest(submitted, expected):
-            abort(400, description="The form expired. Please reload the page and try again.")
 
 
 @app.teardown_appcontext
@@ -155,28 +221,11 @@ def close_db(_error=None):
 
 @app.context_processor
 def inject_globals():
-    user = None
-    user_id = session.get("user_id")
-    if user_id:
-        user = get_db().execute(
-            "SELECT id, name, email FROM users WHERE id = ?", (user_id,)
-        ).fetchone()
-        if user is None:
-            session.pop("user_id", None)
-    if "_csrf_token" not in session:
-        session["_csrf_token"] = secrets.token_urlsafe(32)
-    return {"current_user": user, "csrf_token": session["_csrf_token"]}
+    return {"csrf_token": generate_csrf()}
 
 
-def login_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if not session.get("user_id"):
-            flash("Sign in to continue.", "info")
-            return redirect(url_for("login", next=request.path))
-        return view(*args, **kwargs)
-
-    return wrapped
+def current_user_id():
+    return int(current_user.get_id()) if current_user.is_authenticated else None
 
 
 def activity_rows(query="", category="", user_id=None, limit=None, when="", location=""):
@@ -198,16 +247,13 @@ def activity_rows(query="", category="", user_id=None, limit=None, when="", loca
         params.append(f"%{location.strip()}%")
     now = datetime.now()
     if when == "today":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         sql += " AND a.starts_at >= ? AND a.starts_at < ?"
-        params.extend(
-            [now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="minutes"),
-             (now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(timespec="minutes")]
-        )
+        params.extend([start.isoformat(timespec="minutes"), (start + timedelta(days=1)).isoformat(timespec="minutes")])
     elif when == "week":
         start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = start + timedelta(days=7)
         sql += " AND a.starts_at >= ? AND a.starts_at < ?"
-        params.extend([start.isoformat(timespec="minutes"), end.isoformat(timespec="minutes")])
+        params.extend([start.isoformat(timespec="minutes"), (start + timedelta(days=7)).isoformat(timespec="minutes")])
     sql += " ORDER BY a.starts_at ASC"
     if limit is not None:
         sql += " LIMIT ?"
@@ -232,12 +278,13 @@ def member_activities(table, user_id):
 
 
 def safe_local_path(value):
-    return value.startswith("/") and not value.startswith("//") and "\\" not in value
+    parsed = urlsplit(value)
+    return value.startswith("/") and not value.startswith("//") and not parsed.netloc and not parsed.scheme and "\\" not in value
 
 
 @app.route("/")
 def home():
-    activities = activity_rows(user_id=session.get("user_id"), limit=3)
+    activities = activity_rows(user_id=current_user_id(), limit=3)
     return render_template("index.html", activities=activities, categories=CATEGORIES)
 
 
@@ -251,7 +298,7 @@ def explore_activities():
         category = ""
     if when not in {"today", "week"}:
         when = ""
-    activities = activity_rows(query, category, session.get("user_id"), when=when, location=location)
+    activities = activity_rows(query, category, current_user_id(), when=when, location=location)
     return render_template(
         "activities.html",
         activities=activities,
@@ -265,7 +312,7 @@ def explore_activities():
 
 @app.route("/activities/<int:activity_id>")
 def activity_detail(activity_id):
-    activity = activity_rows(user_id=session.get("user_id"))
+    activity = activity_rows(user_id=current_user_id())
     selected = next((item for item in activity if item["id"] == activity_id), None)
     if selected is None:
         abort(404)
@@ -292,8 +339,9 @@ def create_activity():
                 flash("Enter a valid date and time.", "error")
             else:
                 user = get_db().execute(
-                    "SELECT name FROM users WHERE id = ?", (session["user_id"],)
+                    "SELECT name, username FROM users WHERE id = ?", (current_user_id(),)
                 ).fetchone()
+                organizer = user["name"] or user["username"]
                 db = get_db()
                 cursor = db.execute(
                     """INSERT INTO activities
@@ -305,8 +353,8 @@ def create_activity():
                         description,
                         date.isoformat(timespec="minutes"),
                         location,
-                        session["user_id"],
-                        user["name"],
+                        current_user_id(),
+                        organizer,
                         datetime.now().isoformat(timespec="minutes"),
                     ),
                 )
@@ -325,13 +373,13 @@ def update_rsvp(activity_id):
     if request.form.get("action") == "leave":
         db.execute(
             "DELETE FROM rsvps WHERE user_id = ? AND activity_id = ?",
-            (session["user_id"], activity_id),
+            (current_user_id(), activity_id),
         )
         flash("Your RSVP was removed.", "info")
     else:
         db.execute(
             "INSERT OR IGNORE INTO rsvps (user_id, activity_id, created_at) VALUES (?, ?, ?)",
-            (session["user_id"], activity_id, datetime.now().isoformat(timespec="minutes")),
+            (current_user_id(), activity_id, datetime.now().isoformat(timespec="minutes")),
         )
         flash("You're on the list. See you there!", "success")
     db.commit()
@@ -349,18 +397,18 @@ def toggle_saved(activity_id):
         abort(404)
     saved = db.execute(
         "SELECT 1 FROM saved_activities WHERE user_id = ? AND activity_id = ?",
-        (session["user_id"], activity_id),
+        (current_user_id(), activity_id),
     ).fetchone()
     if saved:
         db.execute(
             "DELETE FROM saved_activities WHERE user_id = ? AND activity_id = ?",
-            (session["user_id"], activity_id),
+            (current_user_id(), activity_id),
         )
         flash("Removed from your saved activities.", "info")
     else:
         db.execute(
             "INSERT INTO saved_activities (user_id, activity_id, created_at) VALUES (?, ?, ?)",
-            (session["user_id"], activity_id, datetime.now().isoformat(timespec="minutes")),
+            (current_user_id(), activity_id, datetime.now().isoformat(timespec="minutes")),
         )
         flash("Activity saved for later.", "success")
     db.commit()
@@ -373,73 +421,76 @@ def toggle_saved(activity_id):
 @app.route("/saved")
 @login_required
 def saved_activities():
-    user_id = session["user_id"]
-    activities = member_activities("saved_activities", user_id)
-    return render_template("activities.html", activities=activities, categories=CATEGORIES,
-                           query="", selected_category="", page_title="Saved activities")
+    activities = member_activities("saved_activities", current_user_id())
+    return render_template(
+        "activities.html",
+        activities=activities,
+        categories=CATEGORIES,
+        query="",
+        selected_category="",
+        page_title="Saved activities",
+    )
 
 
 @app.route("/community")
 @login_required
 def community():
-    user_id = session["user_id"]
-    attending = member_activities("rsvps", user_id)
-    saved = member_activities("saved_activities", user_id)
-    return render_template("community.html", attending=attending, saved=saved)
+    user_id = current_user_id()
+    return render_template(
+        "community.html",
+        attending=member_activities("rsvps", user_id),
+        saved=member_activities("saved_activities", user_id),
+    )
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if session.get("user_id"):
+    if current_user.is_authenticated:
         return redirect(url_for("home"))
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        if not name or not email or len(password) < 8:
-            flash("Enter your name and email, and choose a password with at least 8 characters.", "error")
-        else:
-            db = get_db()
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        username = form.username.data.strip().lower()
+        email = form.email.data.strip().lower()
+        if get_user_by_username(app.config["DATABASE"], username):
+            form.username.errors.append("This username is already taken.")
+        if get_user_by_email(app.config["DATABASE"], email):
+            form.email.errors.append("An account with this email already exists.")
+        if not form.username.errors and not form.email.errors:
             try:
-                cursor = db.execute(
-                    "INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
-                    (name, email, generate_password_hash(password), datetime.now().isoformat(timespec="minutes")),
-                )
+                user_id = create_user(app.config["DATABASE"], username, email, form.password.data)
+                db = get_db()
+                db.execute("UPDATE users SET name = ? WHERE id = ?", (username, user_id))
                 db.commit()
+                flash("Account created successfully! You can now log in.", "success")
+                return redirect(url_for("register"))
             except sqlite3.IntegrityError:
-                flash("An account already uses that email address.", "error")
-            else:
-                session.clear()
-                session["user_id"] = cursor.lastrowid
-                flash("Welcome to RamRadar!", "success")
-                return redirect(url_for("home"))
-    return render_template("auth.html", mode="register")
+                flash("That username or email is already registered.", "error")
+    return render_template("auth.html", mode="register", form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"])
 def login():
-    if session.get("user_id"):
+    if current_user.is_authenticated:
         return redirect(url_for("home"))
-    if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        user = get_db().execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        if user is None or not check_password_hash(user["password_hash"], password):
-            flash("Email or password was not recognized.", "error")
-        else:
-            session.clear()
-            session["user_id"] = user["id"]
-            flash("You're signed in.", "success")
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        user_data = get_user_by_email(app.config["DATABASE"], email)
+        if user_data and verify_password(user_data["password_hash"], form.password.data):
+            login_user(User(user_data))
+            flash("You have successfully logged in!", "success")
             destination = request.args.get("next", "")
             return redirect(destination if safe_local_path(destination) else url_for("home"))
-    return render_template("auth.html", mode="login")
+        flash("Invalid email or password.", "error")
+    return render_template("auth.html", mode="login", form=form)
 
 
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():
-    session.clear()
-    flash("You have been signed out.", "info")
+    logout_user()
+    flash("You have successfully logged out.", "success")
     return redirect(url_for("home"))
 
 
@@ -468,4 +519,5 @@ def privacy():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode)
