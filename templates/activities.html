@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title|default("Explore activities") }} — RamRadar{% endblock %}
+{% block content %}
+<section class="page-hero page-hero-activities">
+    <div class="page-hero-inner">
+        <p class="eyebrow eyebrow-light">THE RAM COMMUNITY, IN ONE PLACE</p>
+        <h1>Find something<br><span>worth showing up for.</span></h1>
+        <p>Browse campus plans, find your people, and make the most of the moments around you.</p>
+        <div class="page-hero-decoration" aria-hidden="true"><span>✦</span><span>↗</span><span>✳</span></div>
+    </div>
+</section>
+<section class="section explore-section">
+    <form class="explore-filters" action="{{ url_for('explore_activities') }}" method="get" role="search">
+        <div class="form-field explore-search-field"><label for="explore-query">Search activities</label><input id="explore-query" type="search" name="q" value="{{ query }}" placeholder="Try basketball, library, music..."></div>
+        <div class="form-field"><label for="explore-category">Category</label><select id="explore-category" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category }}" {% if category == selected_category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select></div>
+        <div class="form-field"><label for="explore-when">When</label><select id="explore-when" name="when"><option value="">Any time</option><option value="today" {% if selected_when == "today" %}selected{% endif %}>Today</option><option value="week" {% if selected_when == "week" %}selected{% endif %}>This week</option></select></div>
+        <div class="form-field"><label for="explore-location">Location</label><input id="explore-location" name="location" value="{{ selected_location }}" placeholder="Anywhere on campus"></div>
+        <button class="button button-primary explore-submit" type="submit">Find activities <span aria-hidden="true">→</span></button>
+    </form>
+    <div class="explore-results-heading"><div><p class="eyebrow">MAKE A PLAN</p><h2>{{ page_title|default("Explore activities") }}</h2></div><p>{{ activities|length }} {{ "activity" if activities|length == 1 else "activities" }} to explore</p></div>
+    {% if activities %}
+    <div class="activity-grid explore-grid">{% for activity in activities %}{% include "_activity_card.html" %}{% endfor %}</div>
+    {% else %}
+    <div class="empty-state"><span class="empty-state-icon">⌕</span><h2>No activities found just yet.</h2><p>Try a different search or category—or be the first to create a plan for your community.</p><a class="button button-primary" href="{{ url_for('create_activity') }}">Create an activity <span aria-hidden="true">↗</span></a></div>
+    {% endif %}
+    <p class="sample-note">Demo listings are examples only—not confirmed university events. Student-created listings are labeled separately.</p>
+</section>
+{% endblock %}

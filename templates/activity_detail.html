@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ activity.title }} — RamRadar{% endblock %}
+{% block content %}
+<section class="section detail-section">
+    <a class="back-link" href="{{ url_for('explore_activities') }}">← Back to activities</a>
+    <div class="detail-layout">
+        <div>
+            <div class="detail-visual visual-{{ activity.category|lower|replace(' ', '-')|replace('&', 'and')|replace('/', '-') }}">
+                <span class="activity-pill">{{ activity.category }}</span><span class="visual-shape" aria-hidden="true"></span><span class="visual-symbol" aria-hidden="true">✦</span>
+                {% if activity.is_demo %}<span class="demo-badge">Demo listing</span>{% endif %}
+            </div>
+            <div class="detail-description">
+                <p class="eyebrow">ABOUT THIS ACTIVITY</p><h2>A good plan starts with showing up.</h2><p>{{ activity.description }}</p>
+            </div>
+        </div>
+        <aside class="detail-panel">
+            <p class="eyebrow">MAKE IT A PLAN</p><h1>{{ activity.title }}</h1>
+            <div class="detail-facts"><p><span>◷</span><span><small>DATE &amp; TIME</small><strong>{{ activity.starts_at|event_date }}</strong></span></p><p><span>⌖</span><span><small>WHERE</small><strong>{{ activity.location }}</strong></span></p><p><span>♧</span><span><small>ORGANIZED BY</small><strong>{{ activity.organizer_name }}</strong></span></p><p><span>◉</span><span><small>GOING</small><strong>{{ activity.attendee_count }} {{ "person" if activity.attendee_count == 1 else "people" }}</strong></span></p></div>
+            {% if activity.is_demo %}<p class="demo-disclaimer">This is demonstration content, not a confirmed WSSU event.</p>{% endif %}
+            {% if current_user %}
+            <form action="{{ url_for('update_rsvp', activity_id=activity.id) }}" method="post" class="detail-actions">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                {% if activity.is_attending %}<button class="button button-primary button-full" type="submit" name="action" value="leave">You're going · Cancel RSVP</button>{% else %}<button class="button button-primary button-full" type="submit" name="action" value="join">RSVP to this activity <span aria-hidden="true">→</span></button>{% endif %}
+            </form>
+            <form action="{{ url_for('toggle_saved', activity_id=activity.id) }}" method="post" class="detail-actions">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="button button-outline button-full" type="submit">{{ "Remove from saved" if activity.is_saved else "♡  Save for later" }}</button>
+            </form>
+            {% else %}
+            <a class="button button-primary button-full" href="{{ url_for('login', next=request.path) }}">Sign in to RSVP <span aria-hidden="true">→</span></a>
+            <a class="button button-outline button-full" href="{{ url_for('register') }}">Join RamRadar</a>
+            {% endif %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

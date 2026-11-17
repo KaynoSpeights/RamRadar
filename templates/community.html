@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Your RamRadar community — RamRadar{% endblock %}
+{% block content %}
+<section class="page-hero page-hero-activities"><div class="page-hero-inner"><p class="eyebrow eyebrow-light">YOUR PLANS, ALL TOGETHER</p><h1>Your campus.<br><span>Your community.</span></h1><p>Keep track of the activities you're joining and the plans you want to come back to.</p></div></section>
+<section class="section explore-section">
+    <div class="explore-results-heading"><div><p class="eyebrow">SHOWING UP</p><h2>You're going to</h2></div><p>{{ attending|length }} {{ "activity" if attending|length == 1 else "activities" }}</p></div>
+    {% if attending %}<div class="activity-grid explore-grid">{% for activity in attending %}{% include "_activity_card.html" %}{% endfor %}</div>
+    {% else %}<div class="empty-state"><span class="empty-state-icon">♡</span><h2>Your next plan is waiting.</h2><p>RSVP to an activity and it will show up here.</p><a class="button button-primary" href="{{ url_for('explore_activities') }}">Explore activities <span aria-hidden="true">→</span></a></div>{% endif %}
+
+    <div class="explore-results-heading community-saved-heading"><div><p class="eyebrow">FOR ANOTHER DAY</p><h2>Saved for later</h2></div><p>{{ saved|length }} saved</p></div>
+    {% if saved %}<div class="activity-grid explore-grid">{% for activity in saved %}{% include "_activity_card.html" %}{% endfor %}</div>
+    {% else %}<div class="empty-state"><span class="empty-state-icon">✦</span><h2>Keep a good idea close.</h2><p>Save an activity you like, and find it here when you're ready.</p><a class="button button-outline" href="{{ url_for('explore_activities') }}">Find something <span aria-hidden="true">→</span></a></div>{% endif %}
+</section>
+{% endblock %}

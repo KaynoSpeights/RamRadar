@@ -1,0 +1,38 @@
+<article class="activity-card" data-category="{{ activity.category }}">
+    <a class="activity-visual visual-{{ activity.category|lower|replace(' ', '-')|replace('&', 'and')|replace('/', '-') }}" href="{{ url_for('activity_detail', activity_id=activity.id) }}" aria-label="View {{ activity.title }}">
+        <span class="activity-pill">{{ activity.category }}</span>
+        <span class="visual-shape" aria-hidden="true"></span>
+        <span class="visual-symbol" aria-hidden="true">
+            {% if activity.category == "Pickup Games" %}↗
+            {% elif activity.category == "Study Sessions" %}✳
+            {% elif activity.category == "Gaming Sessions" %}⌘
+            {% elif activity.category == "Social Meetups" %}✦
+            {% elif activity.category == "Career" %}↗
+            {% else %}✳{% endif %}
+        </span>
+        {% if activity.is_demo %}<span class="demo-badge">Demo listing</span>{% endif %}
+    </a>
+    <div class="activity-info">
+        <p class="activity-date">{{ activity.starts_at|event_date }}</p>
+        <h3><a href="{{ url_for('activity_detail', activity_id=activity.id) }}">{{ activity.title }}</a></h3>
+        <p class="activity-description">{{ activity.description }}</p>
+        <div class="activity-meta">
+            <span><span aria-hidden="true">⌖</span> {{ activity.location }}</span>
+            <span><span aria-hidden="true">◉</span> {{ activity.attendee_count }} going</span>
+        </div>
+        <div class="activity-card-actions">
+            <a class="button button-outline" href="{{ url_for('activity_detail', activity_id=activity.id) }}">View details <span aria-hidden="true">→</span></a>
+            {% if current_user %}
+            <form action="{{ url_for('update_rsvp', activity_id=activity.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                {% if activity.is_attending %}
+                <button class="icon-button is-selected" type="submit" name="action" value="leave" aria-label="Cancel RSVP">✓</button>
+                {% else %}
+                <button class="icon-button" type="submit" name="action" value="join" aria-label="RSVP">＋</button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</article>

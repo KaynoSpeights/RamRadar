@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Create an activity — RamRadar{% endblock %}
+{% block content %}
+<section class="section form-page">
+    <div class="form-page-intro"><p class="eyebrow">BRING YOUR PEOPLE TOGETHER</p><h1>Make a plan.<br><span>Make it happen.</span></h1><p>Share an activity with the Ram community. Your listing will show your name as its organizer.</p></div>
+    <form class="stacked-form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-field"><label for="title">Activity name</label><input id="title" name="title" maxlength="120" required placeholder="e.g. Sunday study group"></div>
+        <div class="form-row"><div class="form-field"><label for="category">Category</label><select id="category" name="category" required><option value="">Choose one</option>{% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}</select></div><div class="form-field"><label for="starts_at">Date and time</label><input id="starts_at" name="starts_at" type="datetime-local" required></div></div>
+        <div class="form-field"><label for="location">Where</label><input id="location" name="location" maxlength="160" required placeholder="Building, room, or meeting spot"></div>
+        <div class="form-field"><label for="description">What's the plan?</label><textarea id="description" name="description" rows="5" maxlength="1500" required placeholder="Tell people what to expect..."></textarea></div>
+        <p class="form-help">Only post activities you are comfortable sharing publicly. RamRadar does not verify organizers or university affiliation.</p>
+        <button class="button button-primary" type="submit">Publish activity <span aria-hidden="true">→</span></button>
+    </form>
+</section>
+{% endblock %}

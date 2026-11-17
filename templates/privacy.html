@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Privacy policy — RamRadar{% endblock %}
+{% block content %}
+<section class="page-hero page-hero-privacy"><div class="page-hero-inner"><p class="eyebrow eyebrow-light">YOUR INFORMATION, EXPLAINED</p><h1>Privacy, in<br><span>plain language.</span></h1><p>We want you to understand what information RamRadar uses and what it means to use this community project.</p></div></section>
+<article class="policy-content">
+    <p class="policy-updated">Last updated: November 16, 2026</p>
+    <p>RamRadar is a student-focused activity discovery project for the Winston-Salem State University community. It is not an official WSSU service, and an account does not verify university affiliation. This policy describes information handled by the current application.</p>
+    <h2>Information you provide</h2>
+    <ul><li><strong>Account details:</strong> your name, email address, and a password that is stored as a password hash rather than plain text.</li><li><strong>Activities:</strong> details you submit when creating an activity, including its title, category, description, date, time, and location. Your account name appears as the organizer.</li><li><strong>RSVPs and saved activities:</strong> the activities you choose to join or save.</li><li><strong>Feedback:</strong> your name, email, selected subject, and message when you send feedback through the homepage.</li></ul>
+    <h2>How information is used</h2>
+    <p>The application uses account information to provide sign-in, activity creation, RSVP, and saved-activity features. Activity details and RSVP counts are displayed to people using the site. Feedback is stored for the RamRadar team to review. The current version does not provide personalized recommendations, push notifications, group messaging, or activity-change alerts.</p>
+    <h2>Data storage and retention</h2>
+    <p>In the current development setup, application records are stored in a local SQLite database. There is no automated retention or deletion schedule in the application today. If this project is deployed or its storage configuration changes, hosting and backup practices may differ. Do not use the site for sensitive or confidential information.</p>
+    <h2>Third-party services</h2>
+    <p>The page loads fonts from Google Fonts, which may receive standard connection information such as your IP address when your browser requests those font files. Apart from this font service, the current application does not include analytics, advertising, payment, or social sign-in integrations.</p>
+    <h2>Security and account management</h2>
+    <p>Passwords are hashed before storage, and state-changing forms use session-based request tokens. These measures do not guarantee security. The application has not claimed a security certification or institutional review. You can sign out through the navigation; account editing, account deletion, and self-service data export are not currently available.</p>
+    <h2>Your choices and questions</h2>
+    <p>Do not submit information you would not want shared with other site users. For privacy questions or requests related to your account, use the <a href="{{ url_for('home') }}#contact">feedback form</a> and select “Other.” The form is delivered to the RamRadar application database and is not an official university support channel.</p>
+</article>
+{% endblock %}

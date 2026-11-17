@@ -1,144 +1,173 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RamRadar | Discover What's Happening</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
-</head>
-
-<body>
-
-    <header class="navbar">
-        <div class="logo">Ram<span>Radar</span></div>
-
-        <nav>
-            <a href="/">Explore</a>
-            <a href="#categories">Categories</a>
-            <a href="#activities">Activities</a>
-        </nav>
-
-        <button class="create-button">+ Create Activity</button>
-    </header>
-
-    <main>
-
-        <section class="hero">
-            <div class="hero-content">
-                <p class="eyebrow">YOUR CAMPUS. YOUR COMMUNITY.</p>
-
-                <h1>Discover what's <span>happening.</span></h1>
-
-                <p class="hero-description">
-                    Find events, meet new people, join activities,
-                    and make the most of your college experience.
-                </p>
-
-                <form class="search-container" id="activity-search" role="search">
-                    <label class="visually-hidden" for="search-query">Search activities</label>
-                    <input id="search-query" name="q" type="search" placeholder="Search activities, events, and more...">
-                    <button type="submit">Search</button>
-                </form>
+{% extends "base.html" %}
+{% block title %}RamRadar — Find your people. Discover your next thing.{% endblock %}
+{% block content %}
+<section class="hero" id="home">
+    <div class="hero-glow hero-glow-one" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow-two" aria-hidden="true"></div>
+    <div class="hero-inner">
+        <div class="hero-copy reveal">
+            <p class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> BUILT FOR THE RAM COMMUNITY</p>
+            <h1>Find your people.<br><span>Discover your next thing.</span></h1>
+            <p class="hero-description">From the next big campus event to a last-minute study session, find the moments and people that make campus feel like yours.</p>
+            <div class="hero-actions">
+                <a class="button button-white" href="#activities">Explore activities <span aria-hidden="true">↗</span></a>
+                <a class="button button-ghost" href="#how-it-works"><span class="play-icon" aria-hidden="true">▶</span> How it works</a>
             </div>
-        </section>
-
-        <section class="categories" id="categories">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">EXPLORE</p>
-                    <h2>Find your community</h2>
-                </div>
+            <div class="hero-social-proof">
+                <div class="avatar-stack" aria-hidden="true"><span>R</span><span>♬</span><span>✦</span><span>+</span></div>
+                <p><strong>A little more campus, every day.</strong><br>Find a reason to show up.</p>
             </div>
+        </div>
 
-            <div class="category-list">
-                <button type="button" class="category active" data-category="all" aria-pressed="true">All Activities</button>
-                <button type="button" class="category" data-category="Events" aria-pressed="false">Events</button>
-                <button type="button" class="category" data-category="Pickup Games" aria-pressed="false">Pickup Games</button>
-                <button type="button" class="category" data-category="Study Sessions" aria-pressed="false">Study Sessions</button>
-                <button type="button" class="category" data-category="Social Meetups" aria-pressed="false">Social Meetups</button>
-                <button type="button" class="category" data-category="Gaming" aria-pressed="false">Gaming</button>
-                <button type="button" class="category" data-category="Concerts & Outings" aria-pressed="false">Concerts & Outings</button>
-                <button type="button" class="category" data-category="Career" aria-pressed="false">Career</button>
+        <div class="hero-art reveal" aria-label="Illustration of discovering campus activities">
+            <div class="art-orbit orbit-one"></div>
+            <div class="art-orbit orbit-two"></div>
+            <div class="campus-art">
+                <div class="campus-sun"></div>
+                <div class="campus-building building-back"><span></span><span></span><span></span></div>
+                <div class="campus-building building-front"><span></span><span></span><span></span><span></span></div>
+                <div class="campus-ground"></div>
+                <div class="campus-tree tree-left"></div><div class="campus-tree tree-right"></div>
+                <div class="campus-path"></div>
             </div>
-        </section>
-
-        <section class="activities" id="activities">
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">WHAT'S HAPPENING</p>
-                    <h2>Explore activities</h2>
-                </div>
-
-                <a href="#activities" class="view-all">View all →</a>
+            <div class="floating-note note-top"><span class="note-icon note-crimson">✦</span><span><strong>Find your people</strong><small>Moments start here</small></span></div>
+            <div class="floating-note note-bottom"><span class="note-icon note-gold">↗</span><span><strong>Something's happening</strong><small>Your next thing is nearby</small></span></div>
+            <div class="art-caption"><span class="caption-dot"></span> YOUR CAMPUS, IN MOTION</div>
+        </div>
+    </div>
+    <div class="hero-search-wrap reveal">
+        <form class="hero-search" action="{{ url_for('explore_activities') }}" method="get" role="search">
+            <div class="search-field search-keyword">
+                <label for="hero-query">I'm looking for</label>
+                <span aria-hidden="true">⌕</span>
+                <input id="hero-query" type="search" name="q" placeholder="An activity, a vibe, a place...">
             </div>
-
-            <div class="filter-summary" hidden>
-                <p id="results-count" role="status" aria-live="polite" aria-atomic="true"></p>
-                <button type="button" id="clear-filters">Clear filters</button>
+            <div class="search-field">
+                <label for="hero-category">Category</label>
+                <span aria-hidden="true">⌄</span>
+                <select id="hero-category" name="category">
+                    <option value="">All activities</option>
+                    {% for category in categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
+                </select>
             </div>
-            <p id="no-results" hidden>No activities match your search. Try another keyword or clear your filters.</p>
-            <noscript><p>Enable JavaScript to search and filter activities. All activities are shown below.</p></noscript>
-
-            <div class="activity-grid">
-
-                <article class="activity-card" data-category="Pickup Games">
-                    <div class="activity-image basketball">
-                        <span>Pickup Games</span>
-                    </div>
-
-                    <div class="activity-info">
-                        <p class="activity-date">SAMPLE EVENT</p>
-                        <h3>Campus Basketball Meetup</h3>
-                        <p>Meet other students for a friendly pickup game.</p>
-                        <div class="activity-footer">
-                            <span>📍 Campus Recreation Center</span>
-                            <span>👥 Open</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="activity-card" data-category="Study Sessions">
-                    <div class="activity-image study">
-                        <span>Study Sessions</span>
-                    </div>
-
-                    <div class="activity-info">
-                        <p class="activity-date">SAMPLE EVENT</p>
-                        <h3>Group Study Session</h3>
-                        <p>Connect with students and study together.</p>
-                        <div class="activity-footer">
-                            <span>📍 Library</span>
-                            <span>👥 Open</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="activity-card" data-category="Gaming">
-                    <div class="activity-image gaming">
-                        <span>Gaming</span>
-                    </div>
-
-                    <div class="activity-info">
-                        <p class="activity-date">SAMPLE EVENT</p>
-                        <h3>Student Gaming Night</h3>
-                        <p>Find other gamers and enjoy a night of gaming.</p>
-                        <div class="activity-footer">
-                            <span>🌐 Virtual</span>
-                            <span>👥 Open</span>
-                        </div>
-                    </div>
-                </article>
-
+            <div class="search-field">
+                <label for="hero-date">When</label>
+                <span aria-hidden="true">◷</span>
+                <select id="hero-date" name="when">
+                    <option value="">Any time</option><option value="today">Today</option><option value="week">This week</option>
+                </select>
             </div>
-        </section>
+            <button type="submit" class="button button-primary hero-search-submit">Find activities <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="search-caption"><span aria-hidden="true">✦</span> Your next campus moment is just around the corner.</p>
+    </div>
+</section>
 
-    </main>
+<section class="section categories-section" id="categories">
+    <div class="section-heading reveal">
+        <div><p class="eyebrow">YOUR KIND OF THING</p><h2>Find a little <span>something.</span></h2></div>
+        <p>New friends, new interests, same campus. Pick what you're into and see where it takes you.</p>
+    </div>
+    <div class="category-grid">
+        <a class="category-tile category-tile-red reveal" href="{{ url_for('explore_activities', category='Campus Events') }}"><span class="tile-icon">✳</span><span class="tile-arrow">↗</span><h3>Campus events</h3><p>Big moments, little moments, and everything happening in between.</p><span class="tile-link">See what's on <b>→</b></span></a>
+        <a class="category-tile category-tile-peach reveal" href="{{ url_for('explore_activities', category='Pickup Games') }}"><span class="tile-icon">◉</span><span class="tile-arrow">↗</span><h3>Pickup games</h3><p>Find a court, make a team, and get in the game.</p><span class="tile-link">Find a game <b>→</b></span></a>
+        <a class="category-tile category-tile-lilac reveal" href="{{ url_for('explore_activities', category='Study Sessions') }}"><span class="tile-icon">✎</span><span class="tile-arrow">↗</span><h3>Study sessions</h3><p>Good company, shared notes, better study breaks.</p><span class="tile-link">Study together <b>→</b></span></a>
+        <a class="category-tile category-tile-yellow reveal" href="{{ url_for('explore_activities', category='Social Meetups') }}"><span class="tile-icon">✦</span><span class="tile-arrow">↗</span><h3>Social meetups</h3><p>Say hey, get out there, and make campus feel smaller.</p><span class="tile-link">Meet your people <b>→</b></span></a>
+        <a class="category-tile category-tile-blue reveal" href="{{ url_for('explore_activities', category='Gaming Sessions') }}"><span class="tile-icon">⌘</span><span class="tile-arrow">↗</span><h3>Gaming sessions</h3><p>Bring your main, find your squad, and press start.</p><span class="tile-link">Join the lobby <b>→</b></span></a>
+        <a class="category-tile category-tile-green reveal" href="{{ url_for('explore_activities', category='Concerts & Off-Campus Activities') }}"><span class="tile-icon">♫</span><span class="tile-arrow">↗</span><h3>Shows &amp; outings</h3><p>Catch a show, explore Winston-Salem, make a day of it.</p><span class="tile-link">Go explore <b>→</b></span></a>
+    </div>
+</section>
 
-    <footer>
-        <p>RamRadar © 2026 | Discover. Connect. Participate.</p>
-    </footer>
+<section class="section activities-section" id="activities">
+    <div class="section-heading reveal">
+        <div><p class="eyebrow">THE GOOD STUFF</p><h2>Happening around <span>you.</span></h2></div>
+        <a class="button button-outline" href="{{ url_for('explore_activities') }}">View all activities <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="activity-filters reveal">
+        <div class="category-list" aria-label="Filter activities by category">
+            <button type="button" class="category active" data-category="all" aria-pressed="true">All Activities</button>
+            <button type="button" class="category" data-category="Campus Events" aria-pressed="false">Campus Events</button>
+            <button type="button" class="category" data-category="Pickup Games" aria-pressed="false">Pickup Games</button>
+            <button type="button" class="category" data-category="Study Sessions" aria-pressed="false">Study Sessions</button>
+            <button type="button" class="category" data-category="Social Meetups" aria-pressed="false">Social Meetups</button>
+            <button type="button" class="category" data-category="Gaming Sessions" aria-pressed="false">Gaming Sessions</button>
+            <button type="button" class="category" data-category="Concerts & Off-Campus Activities" aria-pressed="false">Concerts &amp; Outings</button>
+            <button type="button" class="category" data-category="Career" aria-pressed="false">Career</button>
+        </div>
+        <form class="activity-inline-search" id="activity-search" role="search">
+            <label class="visually-hidden" for="search-query">Search activities</label>
+            <span aria-hidden="true">⌕</span>
+            <input id="search-query" name="q" type="search" placeholder="Search activities...">
+            <button type="submit" aria-label="Search activities">↵</button>
+        </form>
+    </div>
+    <div class="filter-summary" hidden><p id="results-count" role="status" aria-live="polite" aria-atomic="true"></p><button type="button" id="clear-filters">Clear filters</button></div>
+    <p id="no-results" hidden>No activities match your search. Try another keyword or clear your filters.</p>
+    <noscript><p>Enable JavaScript to search and filter the featured activities. You can browse all activities using the button above.</p></noscript>
+    <div class="activity-grid">
+        {% for activity in activities %}{% include "_activity_card.html" %}{% endfor %}
+    </div>
+    <p class="sample-note">Demo listings are examples only—not confirmed university events. Student-created listings are labeled separately.</p>
+</section>
 
-</body>
-</html>
+<section class="why-section" id="about">
+    <div class="why-inner">
+        <div class="why-copy reveal">
+            <p class="eyebrow eyebrow-light">MORE THAN A CALENDAR</p>
+            <h2>Campus is better<br>when you're <span>in it.</span></h2>
+            <p>RamRadar makes it easier to find your people, try something new, and feel part of the WSSU community—one plan at a time.</p>
+            <a class="button button-white" href="#how-it-works">Get to know us <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="benefit-grid">
+            <article class="benefit-card reveal"><span class="benefit-icon">✦</span><h3>Your kind of discovery</h3><p>Find activities that fit your interests, not just what's on a bulletin board.</p></article>
+            <article class="benefit-card reveal"><span class="benefit-icon">↗</span><h3>Connections that count</h3><p>Discover career meetups, workshops, and chances to grow your network.</p></article>
+            <article class="benefit-card reveal"><span class="benefit-icon">◷</span><h3>On your schedule</h3><p>Explore by category, find what works with your day, and plan ahead.</p></article>
+            <article class="benefit-card reveal"><span class="benefit-icon">✎</span><h3>Learn side by side</h3><p>Find a study group, share what you know, and make learning a team effort.</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="section how-section" id="how-it-works">
+    <div class="section-heading centered-heading reveal"><div><p class="eyebrow">THREE STEPS. THAT'S IT.</p><h2>Make room for <span>more.</span></h2></div><p>It's easy to go from scrolling through plans to being part of one.</p></div>
+    <div class="steps-grid">
+        <article class="step-card reveal"><span class="step-number">01</span><div class="step-icon">⌕</div><h3>Discover</h3><p>Browse activities, explore your interests, and find something that feels like you.</p><span class="step-connector" aria-hidden="true">→</span></article>
+        <article class="step-card reveal"><span class="step-number">02</span><div class="step-icon">♡</div><h3>Connect</h3><p>Save something for later, RSVP, and see who's going with you.</p><span class="step-connector" aria-hidden="true">→</span></article>
+        <article class="step-card reveal"><span class="step-number">03</span><div class="step-icon">✦</div><h3>Show up</h3><p>Meet new people, try new things, and make this campus your community.</p></article>
+    </div>
+    <div class="center-action"><a class="button button-primary" href="{{ url_for('register') }}">Get started <span aria-hidden="true">↗</span></a></div>
+</section>
+
+<section class="community-section">
+    <div class="community-art reveal" aria-hidden="true">
+        <div class="community-card"><span class="community-card-icon">✦</span><div><strong>Plans are better together.</strong><small>Find your next campus moment.</small></div><span class="community-card-arrow">↗</span></div>
+        <div class="community-orbit orbit-community-one"></div><div class="community-orbit orbit-community-two"></div>
+        <span class="community-spark spark-one">✳</span><span class="community-spark spark-two">✦</span><span class="community-spark spark-three">•</span>
+        <div class="community-disc">RAM<br>COMMUNITY</div>
+    </div>
+    <div class="community-copy reveal">
+        <p class="eyebrow">BETTER, TOGETHER</p><h2>Not just a listing.<br><span>A little more connection.</span></h2>
+        <p>Save the plans you like, RSVP so your people know you're coming, and create an activity when it's your turn to bring everyone together.</p>
+        <ul class="community-list"><li><span>✓</span> RSVP and see who's going</li><li><span>✓</span> Keep your saved plans close</li><li><span>✓</span> Create an activity of your own</li></ul>
+        <a class="button button-outline" href="{{ url_for('community') }}">Visit your community page <span aria-hidden="true">→</span></a>
+    </div>
+</section>
+
+<section class="feedback-section" id="contact">
+    <div class="feedback-intro reveal"><p class="eyebrow">WE'RE LISTENING</p><h2>Help us make campus connections <span>better.</span></h2><p>Have an idea, a question, or something we can improve? Drop us a note. Your feedback is saved for the RamRadar team to review.</p><div class="feedback-note"><span>✦</span><p><strong>Your voice matters here.</strong><br>This is for student feedback—not event registration.</p></div></div>
+    <form class="feedback-form reveal" action="{{ url_for('submit_feedback') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="form-row"><div class="form-field"><label for="feedback-name">Your name</label><input id="feedback-name" name="name" autocomplete="name" required></div><div class="form-field"><label for="feedback-email">Email address</label><input id="feedback-email" name="email" type="email" autocomplete="email" required></div></div>
+        <div class="form-field"><label for="feedback-subject">What's on your mind?</label><select id="feedback-subject" name="subject" required><option value="">Choose a topic</option><option>Suggestion</option><option>Question</option><option>Report a problem</option><option>Other</option></select></div>
+        <div class="form-field"><label for="feedback-message">Your message</label><textarea id="feedback-message" name="message" rows="4" placeholder="Tell us what you're thinking..." required></textarea></div>
+        <button class="button button-primary" type="submit">Send feedback <span aria-hidden="true">→</span></button>
+    </form>
+</section>
+
+<section class="final-cta">
+    <div class="cta-decoration cta-decoration-one" aria-hidden="true">✳</div><div class="cta-decoration cta-decoration-two" aria-hidden="true">✦</div>
+    <p class="eyebrow eyebrow-light">YOUR CAMPUS. YOUR COMMUNITY.</p>
+    <h2>Your next adventure<br>is already <span>out there.</span></h2>
+    <p>Meet a few more people. Try a new thing. Make this campus your own.</p>
+    <div class="hero-actions"><a class="button button-white" href="{{ url_for('explore_activities') }}">Explore activities <span aria-hidden="true">↗</span></a><a class="button button-ghost" href="{{ url_for('register') }}">Join RamRadar</a></div>
+</section>
+{% endblock %}
