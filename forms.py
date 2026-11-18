@@ -3,7 +3,6 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import (
     DataRequired,
-    Email,
     EqualTo,
     Length,
     Regexp,
@@ -20,15 +19,6 @@ class RegistrationForm(FlaskForm):
                 r"^[A-Za-z0-9_]+$",
                 message="Use only letters, numbers, and underscores.",
             ),
-        ],
-    )
-
-    email = StringField(
-        "Email",
-        validators=[
-            DataRequired(),
-            Email(),
-            Length(max=254),
         ],
     )
 
@@ -59,12 +49,9 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField(
-        "Email",
-        validators=[
-            DataRequired(),
-            Email(),
-        ],
+    username = StringField(
+        "Username",
+        validators=[DataRequired(), Length(min=3, max=30)],
     )
 
     password = PasswordField(

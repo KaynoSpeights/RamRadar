@@ -14,9 +14,10 @@ sys.path.insert(
 from app import app, limiter
 from user_models import (
     create_user,
-    get_user_by_email,
+    get_user_by_username,
     verify_password,
 )
+from werkzeug.security import generate_password_hash
 
 
 class CSRFParser(HTMLParser):
@@ -86,10 +87,10 @@ class AuthenticationTests(unittest.TestCase):
         return parser.token
 
     def create_test_account(self):
+        self.client.get("/login")
         create_user(
             self.database,
             "teststudent",
-            "student@example.com",
             "SecurePassword2026!"
         )
 
@@ -104,11 +105,12 @@ class AuthenticationTests(unittest.TestCase):
     def test_login_page(self):
         response = self.client.get("/login")
         self.assertEqual(response.status_code, 200)
+        self.assertIn(b'name="username"', response.data)
+        self.assertNotIn(b'name="email"', response.data)
 
     def test_registration_requires_csrf(self):
         response = self.client.post("/register", data={
             "username": "teststudent",
-            "email": "student@example.com",
             "password": "SecurePassword2026!",
             "confirm_password": "SecurePassword2026!"
         })
@@ -116,7 +118,7 @@ class AuthenticationTests(unittest.TestCase):
 
     def test_login_requires_csrf(self):
         response = self.client.post("/login", data={
-            "email": "student@example.com",
+            "username": "teststudent",
             "password": "SecurePassword2026!"
         })
         self.assertEqual(response.status_code, 400)
@@ -130,7 +132,6 @@ class AuthenticationTests(unittest.TestCase):
 
         response = self.client.post("/register", data={
             "username": "teststudent",
-            "email": "student@example.com",
             "password": "SecurePassword2026!",
             "confirm_password": "SecurePassword2026!",
             "csrf_token": token
@@ -138,11 +139,10 @@ class AuthenticationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-        user = get_user_by_email(
-            self.database, "student@example.com"
-        )
+        user = get_user_by_username(self.database, "teststudent")
 
         self.assertIsNotNone(user)
+        self.assertNotIn("email", user)
         self.assertNotEqual(
             user["password_hash"], "SecurePassword2026!"
         )
@@ -155,13 +155,108 @@ class AuthenticationTests(unittest.TestCase):
             )
         )
 
+    def test_registration_page_does_not_request_email(self):
+        response = self.client.get("/register")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'name="username"', response.data)
+        self.assertNotIn(b'name="email"', response.data)
+
+    def test_legacy_contact_fields_are_removed_without_losing_site_data(self):
+        password = "ExistingPassword2026!"
+        with sqlite3.connect(self.database) as connection:
+            connection.execute(
+                """INSERT INTO users (username, email, password_hash)
+                   VALUES (?, ?, ?)""",
+                ("existingstudent", "existing@example.com", generate_password_hash(password, method="scrypt")),
+            )
+            connection.execute(
+                """CREATE TABLE activities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    starts_at TEXT NOT NULL,
+                    location TEXT NOT NULL,
+                    organizer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    organizer_name TEXT NOT NULL,
+                    is_demo INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """INSERT INTO activities
+                   (title, category, description, starts_at, location, organizer_id, organizer_name, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                ("Legacy activity", "Career", "Saved demo data", "2026-11-18T12:00",
+                 "Campus", 1, "existingstudent", "2026-11-17T12:00"),
+            )
+            connection.execute(
+                """CREATE TABLE feedback (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    subject TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )"""
+            )
+            connection.execute(
+                """INSERT INTO feedback (name, email, subject, message, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                ("Demo visitor", "visitor@example.com", "Suggestion", "Keep the demo simple", "2026-11-17T12:00"),
+            )
+
+        response = self.client.get("/login")
+        self.assertEqual(response.status_code, 200)
+
+        with sqlite3.connect(self.database) as connection:
+            user_columns = {row[1] for row in connection.execute("PRAGMA table_info(users)")}
+            user = connection.execute(
+                "SELECT username, name FROM users WHERE username = ?",
+                ("existingstudent",),
+            ).fetchone()
+            feedback_columns = {row[1] for row in connection.execute("PRAGMA table_info(feedback)")}
+            feedback = connection.execute(
+                "SELECT name, subject, message FROM feedback"
+            ).fetchone()
+            activity = connection.execute(
+                "SELECT title, organizer_id FROM activities"
+            ).fetchone()
+            foreign_key_errors = connection.execute("PRAGMA foreign_key_check").fetchall()
+        self.assertNotIn("email", user_columns)
+        self.assertNotIn("email", feedback_columns)
+        self.assertEqual(user, ("existingstudent", "existingstudent"))
+        self.assertEqual(feedback, ("Demo visitor", "Suggestion", "Keep the demo simple"))
+        self.assertEqual(activity, ("Legacy activity", 1))
+        self.assertEqual(foreign_key_errors, [])
+
+        token = self.csrf_token("/login")
+        response = self.client.post(
+            "/login",
+            data={
+                "username": "existingstudent",
+                "password": password,
+                "csrf_token": token,
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Welcome, existingstudent", response.data)
+
+    def test_homepage_and_privacy_policy_have_no_email_fields_or_copy(self):
+        for path in ("/", "/register", "/login", "/privacy"):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn(b"email", response.data.lower())
+
     def test_duplicate_registration(self):
         self.create_test_account()
 
         token = self.csrf_token("/register")
         response = self.client.post("/register", data={
             "username": "teststudent",
-            "email": "student@example.com",
             "password": "SecurePassword2026!",
             "confirm_password": "SecurePassword2026!",
             "csrf_token": token
@@ -182,13 +277,13 @@ class AuthenticationTests(unittest.TestCase):
 
         token = self.csrf_token("/login")
         response = self.client.post("/login", data={
-            "email": "student@example.com",
+            "username": "teststudent",
             "password": "WrongPassword123!",
             "csrf_token": token
         }, follow_redirects=True)
 
         self.assertIn(
-            b"Invalid email or password", response.data
+            b"Invalid username or password", response.data
         )
 
         with self.client.session_transaction() as session:
@@ -199,7 +294,7 @@ class AuthenticationTests(unittest.TestCase):
 
         token = self.csrf_token("/login")
         response = self.client.post("/login", data={
-            "email": "student@example.com",
+            "username": "TESTSTUDENT",
             "password": "SecurePassword2026!",
             "csrf_token": token
         }, follow_redirects=True)
@@ -234,7 +329,7 @@ class AuthenticationTests(unittest.TestCase):
             response = self.client.post(
                 "/login",
                 data={
-                    "email": "rate.test@example.com",
+                    "username": "rate_test",
                     "password": "WrongPassword123!",
                     "csrf_token": token
                 },

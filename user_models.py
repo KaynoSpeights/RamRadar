@@ -5,11 +5,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 
-def create_user(database_path, username, email, password):
+def create_user(database_path, username, password):
     """Create a user with a securely hashed password."""
 
     username = username.strip().lower()
-    email = email.strip().lower()
 
     password_hash = generate_password_hash(
         password,
@@ -23,36 +22,22 @@ def create_user(database_path, username, email, password):
         if "name" in columns:
             cursor = connection.execute(
                 """
-                INSERT INTO users (username, name, email, password_hash)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (username, name, password_hash)
+                VALUES (?, ?, ?)
                 """,
-                (username, username, email, password_hash)
+                (username, username, password_hash)
             )
         else:
             cursor = connection.execute(
                 """
-                INSERT INTO users (username, email, password_hash)
-                VALUES (?, ?, ?)
+                INSERT INTO users (username, password_hash)
+                VALUES (?, ?)
                 """,
-                (username, email, password_hash)
+                (username, password_hash)
             )
 
         connection.commit()
         return cursor.lastrowid
-
-
-def get_user_by_email(database_path, email):
-    """Retrieve a registered user by email."""
-
-    with closing(sqlite3.connect(database_path)) as connection:
-        connection.row_factory = sqlite3.Row
-
-        user = connection.execute(
-            "SELECT * FROM users WHERE email = ?",
-            (email.strip().lower(),)
-        ).fetchone()
-
-        return dict(user) if user else None
 
 
 def get_user_by_username(database_path, username):
@@ -81,7 +66,6 @@ class User(UserMixin):
     def __init__(self, user_data):
         self.id = str(user_data["id"])
         self.username = user_data["username"]
-        self.email = user_data["email"]
 
 
 def get_user_by_id(database_path, user_id):
@@ -96,7 +80,7 @@ def get_user_by_id(database_path, user_id):
         connection.row_factory = sqlite3.Row
 
         user = connection.execute(
-            "SELECT id, username, email FROM users WHERE id = ?",
+            "SELECT id, username FROM users WHERE id = ?",
             (user_id,)
         ).fetchone()
 

@@ -45,13 +45,13 @@
                 {{ form.hidden_tag() }}
 
                 <div class="form-group">
-                    {{ form.email.label }}
-                    {{ form.email(
+                    {{ form.username.label }}
+                    {{ form.username(
                         class="form-input",
-                        type="email",
-                        autocomplete="email"
+                        autocomplete="username",
+                        required=true
                     ) }}
-                    {% for error in form.email.errors %}
+                    {% for error in form.username.errors %}
                         <p class="form-error">{{ error }}</p>
                     {% endfor %}
                 </div>

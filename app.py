@@ -31,7 +31,6 @@ from forms import LoginForm, RegistrationForm
 from user_models import (
     User,
     create_user,
-    get_user_by_email,
     get_user_by_id,
     get_user_by_username,
     verify_password,
@@ -104,9 +103,9 @@ def initialize_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            name TEXT NOT NULL DEFAULT ''
         );
         CREATE TABLE IF NOT EXISTS activities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,7 +134,6 @@ def initialize_db():
         CREATE TABLE IF NOT EXISTS feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            email TEXT NOT NULL,
             subject TEXT NOT NULL,
             message TEXT NOT NULL,
             created_at TEXT NOT NULL
@@ -143,18 +141,18 @@ def initialize_db():
         """
     )
     user_columns = {
-        row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()
+        row["name"]: row for row in db.execute("PRAGMA table_info(users)").fetchall()
     }
     if "name" not in user_columns:
         db.execute("ALTER TABLE users ADD COLUMN name TEXT NOT NULL DEFAULT ''")
     user_columns = {
-        row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()
+        row["name"]: row for row in db.execute("PRAGMA table_info(users)").fetchall()
     }
     if "username" not in user_columns:
         db.execute("ALTER TABLE users ADD COLUMN username TEXT")
-        for user in db.execute("SELECT id, name, email FROM users").fetchall():
-            candidate = (user["name"] or user["email"].split("@", 1)[0]).strip().lower()
-            candidate = "".join(char for char in candidate if char.isalnum() or char == "_") or "ram"
+        for user in db.execute("SELECT id, name FROM users").fetchall():
+            candidate = (user["name"] or f"ram{user['id']}").strip().lower()
+            candidate = "".join(char for char in candidate if char.isalnum() or char == "_") or f"ram{user['id']}"
             username = candidate
             suffix = 1
             while db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
@@ -163,6 +161,53 @@ def initialize_db():
             db.execute("UPDATE users SET username = ? WHERE id = ?", (username, user["id"]))
         db.execute("CREATE UNIQUE INDEX users_username_unique ON users(username)")
     db.execute("UPDATE users SET name = username WHERE name = ''")
+    user_columns = {
+        row["name"]: row for row in db.execute("PRAGMA table_info(users)").fetchall()
+    }
+    if "email" in user_columns:
+        db.commit()
+        db.execute("PRAGMA foreign_keys = OFF")
+        db.executescript(
+            """
+            BEGIN IMMEDIATE;
+            CREATE TABLE users_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                name TEXT NOT NULL DEFAULT ''
+            );
+            INSERT INTO users_new (id, username, password_hash, created_at, name)
+                SELECT id, username, password_hash, created_at, name FROM users;
+            DROP TABLE users;
+            ALTER TABLE users_new RENAME TO users;
+            COMMIT;
+            """
+        )
+        db.execute("PRAGMA foreign_keys = ON")
+
+    feedback_columns = {
+        row["name"] for row in db.execute("PRAGMA table_info(feedback)").fetchall()
+    }
+    if "email" in feedback_columns:
+        db.commit()
+        db.executescript(
+            """
+            BEGIN IMMEDIATE;
+            CREATE TABLE feedback_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                message TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            INSERT INTO feedback_new (id, name, subject, message, created_at)
+                SELECT id, name, subject, message, created_at FROM feedback;
+            DROP TABLE feedback;
+            ALTER TABLE feedback_new RENAME TO feedback;
+            COMMIT;
+            """
+        )
 
     existing = db.execute("SELECT COUNT(*) FROM activities").fetchone()[0]
     if existing == 0:
@@ -450,21 +495,18 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         username = form.username.data.strip().lower()
-        email = form.email.data.strip().lower()
         if get_user_by_username(app.config["DATABASE"], username):
             form.username.errors.append("This username is already taken.")
-        if get_user_by_email(app.config["DATABASE"], email):
-            form.email.errors.append("An account with this email already exists.")
-        if not form.username.errors and not form.email.errors:
+        if not form.username.errors:
             try:
-                user_id = create_user(app.config["DATABASE"], username, email, form.password.data)
+                user_id = create_user(app.config["DATABASE"], username, form.password.data)
                 db = get_db()
                 db.execute("UPDATE users SET name = ? WHERE id = ?", (username, user_id))
                 db.commit()
                 flash("Account created successfully! You can now log in.", "success")
                 return redirect(url_for("register"))
             except sqlite3.IntegrityError:
-                flash("That username or email is already registered.", "error")
+                form.username.errors.append("This username is already taken.")
     return render_template("auth.html", mode="register", form=form)
 
 
@@ -475,14 +517,14 @@ def login():
         return redirect(url_for("home"))
     form = LoginForm()
     if form.validate_on_submit():
-        email = form.email.data.strip().lower()
-        user_data = get_user_by_email(app.config["DATABASE"], email)
+        username = form.username.data.strip().lower()
+        user_data = get_user_by_username(app.config["DATABASE"], username)
         if user_data and verify_password(user_data["password_hash"], form.password.data):
             login_user(User(user_data))
             flash("You have successfully logged in!", "success")
             destination = request.args.get("next", "")
             return redirect(destination if safe_local_path(destination) else url_for("home"))
-        flash("Invalid email or password.", "error")
+        flash("Invalid username or password.", "error")
     return render_template("auth.html", mode="login", form=form)
 
 
@@ -497,16 +539,15 @@ def logout():
 @app.route("/feedback", methods=["POST"])
 def submit_feedback():
     name = request.form.get("name", "").strip()
-    email = request.form.get("email", "").strip()
     subject = request.form.get("subject", "").strip()
     message = request.form.get("message", "").strip()
     allowed_subjects = {"Suggestion", "Question", "Report a problem", "Other"}
-    if not name or not email or subject not in allowed_subjects or not message:
+    if not name or subject not in allowed_subjects or not message:
         flash("Please complete the feedback form with a valid subject.", "error")
     else:
         get_db().execute(
-            "INSERT INTO feedback (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, ?)",
-            (name, email, subject, message, datetime.now().isoformat(timespec="minutes")),
+            "INSERT INTO feedback (name, subject, message, created_at) VALUES (?, ?, ?, ?)",
+            (name, subject, message, datetime.now().isoformat(timespec="minutes")),
         )
         get_db().commit()
         flash("Thanks for helping make campus connections better.", "success")

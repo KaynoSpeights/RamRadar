@@ -19,9 +19,11 @@ Set `SECRET_KEY` (or `RAMRADAR_SECRET_KEY`) to a persistent, randomly generated 
 
 The initial activity cards are seeded demonstration content, not confirmed WSSU events. Student-created listings are shown under their organizer's name. RamRadar does not currently verify WSSU affiliation or organizations.
 
+Account creation and sign-in use a unique username and password. The site does not collect contact details for accounts or feedback. Existing data from earlier versions is migrated without its contact-detail fields.
+
 ## Current limitations
 
-This prototype does not send email or push notifications, offer group messaging, provide personalized recommendations, support account deletion/export, or administer event changes and cancellations. Feedback is stored in the local database; it is not emailed. SQLite is suitable for the local prototype but should be reviewed before a multi-instance deployment.
+This prototype does not send messages or push notifications, offer group messaging, provide personalized recommendations, support account deletion/export, or administer event changes and cancellations. Feedback is stored in the local database. SQLite is suitable for the local prototype but should be reviewed before a multi-instance deployment.
 
 ## Tests
 

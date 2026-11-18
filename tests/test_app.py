@@ -1,4 +1,5 @@
 import re
+import sqlite3
 import tempfile
 import unittest
 from datetime import datetime, timedelta
@@ -35,7 +36,6 @@ class RamRadarAppTests(unittest.TestCase):
             data={
                 "csrf_token": token,
                 "username": "testram",
-                "email": "ram@example.edu",
                 "password": "safe-password-1234",
                 "confirm_password": "safe-password-1234",
             },
@@ -46,7 +46,7 @@ class RamRadarAppTests(unittest.TestCase):
             "/login",
             data={
                 "csrf_token": token,
-                "email": "ram@example.edu",
+                "username": "testram",
                 "password": "safe-password-1234",
             },
         )
@@ -99,22 +99,31 @@ class RamRadarAppTests(unittest.TestCase):
 
     def test_feedback_privacy_and_csrf_validation(self):
         token = self.token("/")
+        self.assertNotIn(b'name="email"', self.client.get("/").data)
         response = self.client.post(
             "/feedback",
             data={
                 "csrf_token": token,
                 "name": "Test Ram",
-                "email": "ram@example.edu",
                 "subject": "Suggestion",
                 "message": "A test suggestion",
             },
         )
         self.assertEqual(response.status_code, 302)
+        with sqlite3.connect(ramradar.app.config["DATABASE"]) as connection:
+            feedback_columns = {
+                row[1] for row in connection.execute("PRAGMA table_info(feedback)")
+            }
+            feedback = connection.execute(
+                "SELECT name, subject, message FROM feedback"
+            ).fetchone()
+        self.assertNotIn("email", feedback_columns)
+        self.assertEqual(feedback, ("Test Ram", "Suggestion", "A test suggestion"))
         self.assertEqual(self.client.get("/privacy").status_code, 200)
         self.assertEqual(
             self.client.post(
                 "/feedback",
-                data={"name": "Test", "email": "test@example.edu", "subject": "Other", "message": "No token"},
+                data={"name": "Test", "subject": "Other", "message": "No token"},
             ).status_code,
             400,
         )
@@ -126,7 +135,7 @@ class RamRadarAppTests(unittest.TestCase):
         token = self.token("/login?next=https://example.com")
         response = self.client.post(
             "/login?next=https://example.com",
-            data={"csrf_token": token, "email": "ram@example.edu", "password": "safe-password-1234"},
+            data={"csrf_token": token, "username": "TESTRAM", "password": "safe-password-1234"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.location, "/")
