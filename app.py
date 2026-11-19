@@ -249,6 +249,11 @@ def initialize_db():
            SET title = 'Ram Roundup'
            WHERE is_demo = 1 AND title = 'Ram Roundup on the Quad'"""
     )
+    db.execute(
+        """UPDATE activities
+           SET location = 'Student Center'
+           WHERE is_demo = 1 AND title = 'Ram Roundup' AND location = 'University Quad'"""
+    )
     db.commit()
 
 

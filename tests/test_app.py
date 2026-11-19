@@ -60,6 +60,8 @@ class RamRadarAppTests(unittest.TestCase):
         self.assertEqual(response.data.count(b'class="activity-card"'), 3)
         self.assertIn(b"Ram Roundup", response.data)
         self.assertNotIn(b"Ram Roundup on the Quad", response.data)
+        self.assertIn(b"Student Center", response.data)
+        self.assertNotIn(b"University Quad", response.data)
         self.assertIn(b'<svg class="arrow-up-right"', response.data)
         self.assertNotIn("↗".encode(), response.data)
         self.assertIn(b'class="play-glyph">', response.data)
