@@ -218,7 +218,7 @@ def initialize_db():
                 "Campus Events",
                 "A sample campus gathering to meet new people, enjoy music, and make the most of a day on the quad. Demo listing includes a virtual hangout option.",
                 (now + timedelta(days=3)).replace(hour=15).isoformat(timespec="minutes"),
-                "University Quad",
+                "Student Center",
                 "RamRadar demo listing",
             ),
             (
