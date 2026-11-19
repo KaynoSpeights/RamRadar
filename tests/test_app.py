@@ -58,9 +58,37 @@ class RamRadarAppTests(unittest.TestCase):
         self.assertIn(b"Find your people.", response.data)
         self.assertIn(b"Demo listing", response.data)
         self.assertEqual(response.data.count(b'class="activity-card"'), 3)
+        self.assertIn(b"Ram Roundup", response.data)
+        self.assertNotIn(b"Ram Roundup on the Quad", response.data)
+        self.assertIn(b'<svg class="arrow-up-right"', response.data)
+        self.assertNotIn("↗".encode(), response.data)
+        pickup_card = re.search(
+            rb'<article class="activity-card" data-category="Pickup Games">(.*?)</article>',
+            response.data,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(pickup_card)
+        self.assertIn("✳".encode(), pickup_card.group(1))
+        self.assertNotIn(b'<svg class="arrow-up-right"', pickup_card.group(1))
+        for category in ramradar.CATEGORIES:
+            with self.subTest(category=category):
+                response = self.client.get(
+                    "/activities",
+                    query_string={"category": category},
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(b'<svg class="arrow-up-right"', response.data)
 
     def test_registration_activity_creation_rsvp_save_and_filters(self):
         self.register()
+        response = self.client.get("/")
+        self.assertIn(b"Welcome, testram", response.data)
+        self.assertIn(b'href="/activities/create">Create activity</a>', response.data)
+        self.assertIn(b'href="/saved">Saved activities</a>', response.data)
+        self.assertIn(b">Sign out</button>", response.data)
+        self.assertNotIn("↗".encode(), response.data)
+        self.assertIn(b'class="arrow-up-right"', response.data)
+
         token = self.token("/activities/create")
         starts_at = (datetime.now() + timedelta(days=2)).replace(second=0, microsecond=0)
         response = self.client.post(

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "_icons.html" import arrow_up_right %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,10 +32,13 @@
             <a href="{{ url_for('home') }}#about">About</a>
             <div class="mobile-account">
                 {% if current_user.is_authenticated %}
+                    <span class="user-status">Welcome, {{ current_user.username }}</span>
+                    <a href="{{ url_for('create_activity') }}">Create activity</a>
                     <a href="{{ url_for('saved_activities') }}">Saved activities</a>
                     <form action="{{ url_for('logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="text-button" type="submit">Sign out</button></form>
                 {% else %}
                     <a href="{{ url_for('login') }}">Sign in</a>
+                    <a href="{{ url_for('register') }}">Get started</a>
                 {% endif %}
             </div>
         </nav>
@@ -49,7 +53,7 @@
                 </form>
             {% else %}
                 <a class="nav-saved" href="{{ url_for('login') }}">Sign in</a>
-                <a class="button button-small button-primary" href="{{ url_for('register') }}">Get started <span aria-hidden="true">↗</span></a>
+                <a class="button button-small button-primary" href="{{ url_for('register') }}">Get started {{ arrow_up_right() }}</a>
             {% endif %}
         </div>
     </header>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_icons.html" import arrow_up_right %}
 {% block title %}{{ page_title|default("Explore activities") }} — RamRadar{% endblock %}
 {% block content %}
 <section class="page-hero page-hero-activities">
@@ -6,7 +7,7 @@
         <p class="eyebrow eyebrow-light">THE RAM COMMUNITY, IN ONE PLACE</p>
         <h1>Find something<br><span>worth showing up for.</span></h1>
         <p>Browse campus plans, find your people, and make the most of the moments around you.</p>
-        <div class="page-hero-decoration" aria-hidden="true"><span>✦</span><span>↗</span><span>✳</span></div>
+        <div class="page-hero-decoration" aria-hidden="true"><span>✦</span><span>{{ arrow_up_right() }}</span><span>✳</span></div>
     </div>
 </section>
 <section class="section explore-section">
@@ -21,7 +22,7 @@
     {% if activities %}
     <div class="activity-grid explore-grid">{% for activity in activities %}{% include "_activity_card.html" %}{% endfor %}</div>
     {% else %}
-    <div class="empty-state"><span class="empty-state-icon">⌕</span><h2>No activities found just yet.</h2><p>Try a different search or category—or be the first to create a plan for your community.</p><a class="button button-primary" href="{{ url_for('create_activity') }}">Create an activity <span aria-hidden="true">↗</span></a></div>
+    <div class="empty-state"><span class="empty-state-icon">⌕</span><h2>No activities found just yet.</h2><p>Try a different search or category—or be the first to create a plan for your community.</p><a class="button button-primary" href="{{ url_for('create_activity') }}">Create an activity {{ arrow_up_right() }}</a></div>
     {% endif %}
     <p class="sample-note">Demo listings are examples only—not confirmed university events. Student-created listings are labeled separately.</p>
 </section>

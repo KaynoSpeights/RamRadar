@@ -214,7 +214,7 @@ def initialize_db():
         now = datetime.now().replace(second=0, microsecond=0)
         demos = [
             (
-                "Ram Roundup on the Quad",
+                "Ram Roundup",
                 "Campus Events",
                 "A sample campus gathering to meet new people, enjoy music, and make the most of a day on the quad. Demo listing includes a virtual hangout option.",
                 (now + timedelta(days=3)).replace(hour=15).isoformat(timespec="minutes"),
@@ -244,6 +244,11 @@ def initialize_db():
                VALUES (?, ?, ?, ?, ?, ?, 1, ?)""",
             [(*demo, now.isoformat(timespec="minutes")) for demo in demos],
         )
+    db.execute(
+        """UPDATE activities
+           SET title = 'Ram Roundup'
+           WHERE is_demo = 1 AND title = 'Ram Roundup on the Quad'"""
+    )
     db.commit()
 
 

@@ -1,13 +1,15 @@
+{% from "_icons.html" import arrow_up_right %}
 <article class="activity-card" data-category="{{ activity.category }}">
     <a class="activity-visual visual-{{ activity.category|lower|replace(' ', '-')|replace('&', 'and')|replace('/', '-') }}" href="{{ url_for('activity_detail', activity_id=activity.id) }}" aria-label="View {{ activity.title }}">
         <span class="activity-pill">{{ activity.category }}</span>
         <span class="visual-shape" aria-hidden="true"></span>
         <span class="visual-symbol" aria-hidden="true">
-            {% if activity.category == "Pickup Games" %}↗
+            {% if activity.category == "Pickup Games" and activity.is_demo %}✳
+            {% elif activity.category == "Pickup Games" %}{{ arrow_up_right() }}
             {% elif activity.category == "Study Sessions" %}✳
             {% elif activity.category == "Gaming Sessions" %}⌘
             {% elif activity.category == "Social Meetups" %}✦
-            {% elif activity.category == "Career" %}↗
+            {% elif activity.category == "Career" %}{{ arrow_up_right() }}
             {% else %}✳{% endif %}
         </span>
         {% if activity.is_demo %}<span class="demo-badge">Demo listing</span>{% endif %}
