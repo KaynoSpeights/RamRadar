@@ -3,7 +3,7 @@
     <a class="activity-visual visual-{{ activity.category|lower|replace(' ', '-')|replace('&', 'and')|replace('/', '-') }}" href="{{ url_for('activity_detail', activity_id=activity.id) }}" aria-label="View {{ activity.title }}">
         <span class="activity-pill">{{ activity.category }}</span>
         <span class="visual-shape" aria-hidden="true"></span>
-        <span class="visual-symbol" aria-hidden="true">
+        <span class="visual-symbol{% if activity.category not in ['Pickup Games', 'Career', 'Gaming Sessions'] or activity.is_demo %} mobile-star-symbol{% endif %}" aria-hidden="true">
             {% if activity.category == "Pickup Games" and activity.is_demo %}✳
             {% elif activity.category == "Pickup Games" %}{{ arrow_up_right() }}
             {% elif activity.category == "Study Sessions" %}✳

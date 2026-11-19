@@ -62,6 +62,10 @@ class RamRadarAppTests(unittest.TestCase):
         self.assertNotIn(b"Ram Roundup on the Quad", response.data)
         self.assertIn(b'<svg class="arrow-up-right"', response.data)
         self.assertNotIn("↗".encode(), response.data)
+        self.assertIn(b'class="play-glyph">', response.data)
+        self.assertIn(b'class="tile-icon mobile-star-symbol">', response.data)
+        self.assertIn(b'class="community-spark spark-one mobile-star-symbol"', response.data)
+        self.assertIn(b'class="cta-decoration cta-decoration-one mobile-star-symbol"', response.data)
         pickup_card = re.search(
             rb'<article class="activity-card" data-category="Pickup Games">(.*?)</article>',
             response.data,
@@ -124,6 +128,32 @@ class RamRadarAppTests(unittest.TestCase):
             self.client.get("/activities?category=Social+Meetups&location=Student+Center").data,
         )
         self.assertIn(b"Test meetup", self.client.get("/activities?when=week").data)
+
+        career_token = self.token("/activities/create")
+        career_starts_at = (datetime.now() + timedelta(days=4)).replace(second=0, microsecond=0)
+        response = self.client.post(
+            "/activities/create",
+            data={
+                "csrf_token": career_token,
+                "title": "Career networking workshop",
+                "category": "Career",
+                "description": "A student-created career opportunity.",
+                "starts_at": career_starts_at.isoformat(timespec="minutes"),
+                "location": "Career Center",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        home = self.client.get("/")
+        self.assertIn(b"Career networking workshop", home.data)
+        self.assertIn(b'data-category="Career"', home.data)
+        self.assertIn(
+            b"Career networking workshop",
+            self.client.get("/activities").data,
+        )
+        self.assertIn(
+            b"Career networking workshop",
+            self.client.get("/activities?category=Career").data,
+        )
 
     def test_feedback_privacy_and_csrf_validation(self):
         token = self.token("/")

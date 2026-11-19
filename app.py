@@ -334,7 +334,7 @@ def safe_local_path(value):
 
 @app.route("/")
 def home():
-    activities = activity_rows(user_id=current_user_id(), limit=3)
+    activities = activity_rows(user_id=current_user_id())
     return render_template("index.html", activities=activities, categories=CATEGORIES)
 
 

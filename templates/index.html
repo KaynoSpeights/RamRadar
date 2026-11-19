@@ -12,10 +12,10 @@
             <p class="hero-description">From the next big campus event to a last-minute study session, find the moments and people that make campus feel like yours.</p>
             <div class="hero-actions">
                 <a class="button button-white" href="#activities">Explore activities {{ arrow_up_right() }}</a>
-                <a class="button button-ghost" href="#how-it-works"><span class="play-icon" aria-hidden="true">▶</span> How it works</a>
+                <a class="button button-ghost" href="#how-it-works"><span class="play-icon" aria-hidden="true"><span class="play-glyph">▶</span></span> How it works</a>
             </div>
             <div class="hero-social-proof">
-                <div class="avatar-stack" aria-hidden="true"><span>R</span><span>♬</span><span>✦</span><span>+</span></div>
+                <div class="avatar-stack" aria-hidden="true"><span>R</span><span>♬</span><span class="mobile-star-symbol">✦</span><span>+</span></div>
                 <p><strong>A little more campus, every day.</strong><br>Find a reason to show up.</p>
             </div>
         </div>
@@ -31,7 +31,7 @@
                 <div class="campus-tree tree-left"></div><div class="campus-tree tree-right"></div>
                 <div class="campus-path"></div>
             </div>
-            <div class="floating-note note-top"><span class="note-icon note-crimson">✦</span><span><strong>Find your people</strong><small>Moments start here</small></span></div>
+            <div class="floating-note note-top"><span class="note-icon note-crimson mobile-star-symbol">✦</span><span><strong>Find your people</strong><small>Moments start here</small></span></div>
             <div class="floating-note note-bottom"><span class="note-icon note-gold">{{ arrow_up_right() }}</span><span><strong>Something's happening</strong><small>Your next thing is nearby</small></span></div>
             <div class="art-caption"><span class="caption-dot"></span> YOUR CAMPUS, IN MOTION</div>
         </div>
@@ -60,7 +60,7 @@
             </div>
             <button type="submit" class="button button-primary hero-search-submit">Find activities <span aria-hidden="true">→</span></button>
         </form>
-        <p class="search-caption"><span aria-hidden="true">✦</span> Your next campus moment is just around the corner.</p>
+        <p class="search-caption"><span class="mobile-star-symbol" aria-hidden="true">✦</span> Your next campus moment is just around the corner.</p>
     </div>
 </section>
 
@@ -70,10 +70,10 @@
         <p>New friends, new interests, same campus. Pick what you're into and see where it takes you.</p>
     </div>
     <div class="category-grid">
-        <a class="category-tile category-tile-red reveal" href="{{ url_for('explore_activities', category='Campus Events') }}"><span class="tile-icon">✳</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Campus events</h3><p>Big moments, little moments, and everything happening in between.</p><span class="tile-link">See what's on <b>→</b></span></a>
+        <a class="category-tile category-tile-red reveal" href="{{ url_for('explore_activities', category='Campus Events') }}"><span class="tile-icon mobile-star-symbol">✳</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Campus events</h3><p>Big moments, little moments, and everything happening in between.</p><span class="tile-link">See what's on <b>→</b></span></a>
         <a class="category-tile category-tile-peach reveal" href="{{ url_for('explore_activities', category='Pickup Games') }}"><span class="tile-icon">◉</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Pickup games</h3><p>Find a court, make a team, and get in the game.</p><span class="tile-link">Find a game <b>→</b></span></a>
         <a class="category-tile category-tile-lilac reveal" href="{{ url_for('explore_activities', category='Study Sessions') }}"><span class="tile-icon">✎</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Study sessions</h3><p>Good company, shared notes, better study breaks.</p><span class="tile-link">Study together <b>→</b></span></a>
-        <a class="category-tile category-tile-yellow reveal" href="{{ url_for('explore_activities', category='Social Meetups') }}"><span class="tile-icon">✦</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Social meetups</h3><p>Say hey, get out there, and make campus feel smaller.</p><span class="tile-link">Meet your people <b>→</b></span></a>
+        <a class="category-tile category-tile-yellow reveal" href="{{ url_for('explore_activities', category='Social Meetups') }}"><span class="tile-icon mobile-star-symbol">✦</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Social meetups</h3><p>Say hey, get out there, and make campus feel smaller.</p><span class="tile-link">Meet your people <b>→</b></span></a>
         <a class="category-tile category-tile-blue reveal" href="{{ url_for('explore_activities', category='Gaming Sessions') }}"><span class="tile-icon">⌘</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Gaming sessions</h3><p>Bring your main, find your squad, and press start.</p><span class="tile-link">Join the lobby <b>→</b></span></a>
         <a class="category-tile category-tile-green reveal" href="{{ url_for('explore_activities', category='Concerts & Off-Campus Activities') }}"><span class="tile-icon">♫</span><span class="tile-arrow">{{ arrow_up_right() }}</span><h3>Shows &amp; outings</h3><p>Catch a show, explore Winston-Salem, make a day of it.</p><span class="tile-link">Go explore <b>→</b></span></a>
     </div>
@@ -120,7 +120,7 @@
             <a class="button button-white" href="#how-it-works">Get to know us <span aria-hidden="true">→</span></a>
         </div>
         <div class="benefit-grid">
-            <article class="benefit-card reveal"><span class="benefit-icon">✦</span><h3>Your kind of discovery</h3><p>Find activities that fit your interests, not just what's on a bulletin board.</p></article>
+            <article class="benefit-card reveal"><span class="benefit-icon mobile-star-symbol">✦</span><h3>Your kind of discovery</h3><p>Find activities that fit your interests, not just what's on a bulletin board.</p></article>
             <article class="benefit-card reveal"><span class="benefit-icon">{{ arrow_up_right() }}</span><h3>Connections that count</h3><p>Discover career meetups, workshops, and chances to grow your network.</p></article>
             <article class="benefit-card reveal"><span class="benefit-icon">◷</span><h3>On your schedule</h3><p>Explore by category, find what works with your day, and plan ahead.</p></article>
             <article class="benefit-card reveal"><span class="benefit-icon">✎</span><h3>Learn side by side</h3><p>Find a study group, share what you know, and make learning a team effort.</p></article>
@@ -133,16 +133,16 @@
     <div class="steps-grid">
         <article class="step-card reveal"><span class="step-number">01</span><div class="step-icon">⌕</div><h3>Discover</h3><p>Browse activities, explore your interests, and find something that feels like you.</p><span class="step-connector" aria-hidden="true">→</span></article>
         <article class="step-card reveal"><span class="step-number">02</span><div class="step-icon">♡</div><h3>Connect</h3><p>Save something for later, RSVP, and see who's going with you.</p><span class="step-connector" aria-hidden="true">→</span></article>
-        <article class="step-card reveal"><span class="step-number">03</span><div class="step-icon">✦</div><h3>Show up</h3><p>Meet new people, try new things, and make this campus your community.</p></article>
+        <article class="step-card reveal"><span class="step-number">03</span><div class="step-icon mobile-star-symbol">✦</div><h3>Show up</h3><p>Meet new people, try new things, and make this campus your community.</p></article>
     </div>
     <div class="center-action"><a class="button button-primary" href="{{ url_for('register') }}">Get started {{ arrow_up_right() }}</a></div>
 </section>
 
 <section class="community-section">
     <div class="community-art reveal" aria-hidden="true">
-        <div class="community-card"><span class="community-card-icon">✦</span><div><strong>Plans are better together.</strong><small>Find your next campus moment.</small></div><span class="community-card-arrow">{{ arrow_up_right() }}</span></div>
+        <div class="community-card"><span class="community-card-icon mobile-star-symbol">✦</span><div><strong>Plans are better together.</strong><small>Find your next campus moment.</small></div><span class="community-card-arrow">{{ arrow_up_right() }}</span></div>
         <div class="community-orbit orbit-community-one"></div><div class="community-orbit orbit-community-two"></div>
-        <span class="community-spark spark-one">✳</span><span class="community-spark spark-two">✦</span><span class="community-spark spark-three">•</span>
+        <span class="community-spark spark-one mobile-star-symbol">✳</span><span class="community-spark spark-two mobile-star-symbol">✦</span><span class="community-spark spark-three">•</span>
         <div class="community-disc">RAM<br>COMMUNITY</div>
     </div>
     <div class="community-copy reveal">
@@ -154,7 +154,7 @@
 </section>
 
 <section class="feedback-section" id="contact">
-    <div class="feedback-intro reveal"><p class="eyebrow">WE'RE LISTENING</p><h2>Help us make campus connections <span>better.</span></h2><p>Have an idea, a question, or something we can improve? Drop us a note. Your feedback is saved for the RamRadar team to review.</p><div class="feedback-note"><span>✦</span><p><strong>Your voice matters here.</strong><br>This is for student feedback—not event registration.</p></div></div>
+    <div class="feedback-intro reveal"><p class="eyebrow">WE'RE LISTENING</p><h2>Help us make campus connections <span>better.</span></h2><p>Have an idea, a question, or something we can improve? Drop us a note. Your feedback is saved for the RamRadar team to review.</p><div class="feedback-note"><span class="mobile-star-symbol">✦</span><p><strong>Your voice matters here.</strong><br>This is for student feedback—not event registration.</p></div></div>
     <form class="feedback-form reveal" action="{{ url_for('submit_feedback') }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="form-field"><label for="feedback-name">Your name</label><input id="feedback-name" name="name" autocomplete="name" required></div>
@@ -165,7 +165,7 @@
 </section>
 
 <section class="final-cta">
-    <div class="cta-decoration cta-decoration-one" aria-hidden="true">✳</div><div class="cta-decoration cta-decoration-two" aria-hidden="true">✦</div>
+    <div class="cta-decoration cta-decoration-one mobile-star-symbol" aria-hidden="true">✳</div><div class="cta-decoration cta-decoration-two mobile-star-symbol" aria-hidden="true">✦</div>
     <p class="eyebrow eyebrow-light">YOUR CAMPUS. YOUR COMMUNITY.</p>
     <h2>Your next adventure<br>is already <span>out there.</span></h2>
     <p>Meet a few more people. Try a new thing. Make this campus your own.</p>

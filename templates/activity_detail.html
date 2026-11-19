@@ -6,7 +6,7 @@
     <div class="detail-layout">
         <div>
             <div class="detail-visual visual-{{ activity.category|lower|replace(' ', '-')|replace('&', 'and')|replace('/', '-') }}">
-                <span class="activity-pill">{{ activity.category }}</span><span class="visual-shape" aria-hidden="true"></span><span class="visual-symbol" aria-hidden="true">✦</span>
+                <span class="activity-pill">{{ activity.category }}</span><span class="visual-shape" aria-hidden="true"></span><span class="visual-symbol mobile-star-symbol" aria-hidden="true">✦</span>
                 {% if activity.is_demo %}<span class="demo-badge">Demo listing</span>{% endif %}
             </div>
             <div class="detail-description">

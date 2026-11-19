@@ -11,7 +11,7 @@ Contribution: Malik Terry — homepage activity discovery.
 - Keep every activity visible if JavaScript is disabled.
 
 ## Integration for teammates
-The filters operate on the activity cards rendered by Flask; they do not store data or query the database. Keep `.activity-grid` around the list and `.activity-card` on each card. Give each card a `data-category` matching a category button exactly (for example, `Study Sessions`). In a Jinja loop use `data-category="{{ activity.category }}"` with normal escaping enabled. New cards inserted into the grid are automatically filtered. This filters only cards loaded on the page; server-side pagination would need backend search support.
+The homepage loads all activities from the database before rendering, including user-created activities, and its filters operate on those rendered cards in the browser. The Activities page also shows the full activity list and supports server-side filters. Keep `.activity-grid` around the list and `.activity-card` on each card. Give each card a `data-category` matching a category button exactly (for example, `Study Sessions`). In a Jinja loop use `data-category="{{ activity.category }}"` with normal escaping enabled. New cards inserted into the grid are automatically filtered.
 
 ## User stories
 - As a student, I want to search activities by keyword so I can find relevant meetups.
@@ -19,11 +19,11 @@ The filters operate on the activity cards rendered by Flask; they do not store d
 - As a student, I want to clear filters so I can see all activities again.
 
 ## Demo
-1. Open the homepage: three sample activities appear.
-2. Search `BASKETBALL`: the basketball meetup remains.
-3. Select Study Sessions while that search remains: no matches appear.
-4. Clear filters: all three return.
-5. Select Study Sessions and search `library`: only the study session appears.
+1. Open the homepage: demo and user-created activities appear together.
+2. Create a Career activity and return to the homepage: it appears in the activity list.
+3. Select Career: the new event remains visible; other categories are filtered out.
+4. Clear filters: the full homepage list returns.
+5. Select “View all activities”: the complete listing, including the new Career event, appears.
 
 ## Scope
 This contribution covers search/filter interaction and related styling, accessibility, tests, and integration notes. Activity creation, database storage, Docker, deployment, and the full team report/slides remain team work.
